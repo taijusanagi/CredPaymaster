@@ -1,5 +1,17 @@
 # CredPaymaster
 
+## Live App
+
+https://cred-paymaster.vercel.app/
+
+## Demo Video
+
+https://youtu.be/yEw6GqCrhB4
+
+## Pitch Deck
+
+https://docs.google.com/presentation/d/1VATNJZiPF8jrDr6Ahv0aCrLEOPYuhF0P3L9WhnuH8uI/edit?usp=sharing
+
 ## Description
 
 **CredPaymaster** is a credential-based account abstraction paymaster system designed to provide a flexible way to manage paymasters using credentials. Built atop the Ethereum Attestation Service for credential registry, it capitalizes on the power of decentralized solutions to enhance the chain's ecosystem.

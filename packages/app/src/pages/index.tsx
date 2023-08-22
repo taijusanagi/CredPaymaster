@@ -356,7 +356,7 @@ const CredPaymaster: React.FC = () => {
                           return;
                         }
                         try {
-                          await credPaymasterContract.addStake(1, { value: 1 });
+                          // await credPaymasterContract.addStake(1, { value: 1 });
                           const tx = await credPaymasterContract.sponsorAddFund(schemaId, issuerAddress, {
                             value: ethers.utils.parseEther(amount),
                           });
