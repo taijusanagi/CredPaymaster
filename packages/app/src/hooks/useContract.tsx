@@ -23,12 +23,15 @@ export const useContract = () => {
       setEASContract(easContract);
       const attestationSyncContract = new Contract(attestationSyncAddress, attestationSyncAbi, ethersSigner);
       setAttestationSyncContract(attestationSyncContract);
+      setCredPaymasterContract(undefined);
     } else if (chain.id === 84531) {
       const credPaymasterContract = new Contract(credPaymasterAddress, credPaymasterAbi, ethersSigner);
       setCredPaymasterContract(credPaymasterContract);
       credPaymasterContract.getDeposit().then((deposit: number) => {
         setPaymasterDeposit(ethers.utils.formatEther(deposit));
       });
+      setEASContract(undefined);
+      setAttestationSyncContract(undefined);
     }
   }, [chain, ethersSigner]);
   return { easContract, attestationSyncContract, credPaymasterContract, paymasterDeposit };
