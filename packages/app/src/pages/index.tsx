@@ -4,11 +4,17 @@ import { Inter } from "next/font/google";
 import { useIsConnected } from "@/hooks/useIsConnected";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 
+import { useAccountAbstraction } from "@/hooks/useAccountAbstraction";
+import { ethers } from "ethers";
+import { useEthersProvider } from "@/hooks/useEthers";
+
 const inter = Inter({ subsets: ["latin"] });
 
 const CredPaymaster: React.FC = () => {
-  const [mode, setMode] = useState<"ATTESTATION" | "SYNC" | "SPONSOR" | "USER">("ATTESTATION");
+  const { accountAbstraction, bundler, address, balance } = useAccountAbstraction();
+  const ethersProvider = useEthersProvider();
 
+  const [mode, setMode] = useState<"ATTESTATION" | "SYNC" | "SPONSOR" | "USER">("ATTESTATION");
   const { isConnected } = useIsConnected();
   const { openConnectModal } = useConnectModal();
 
@@ -54,8 +60,8 @@ const CredPaymaster: React.FC = () => {
                 <div className="mb-4 bg-gray-50 p-4 rounded border">
                   <h3 className="text-sm font-bold mb-2">Attestation Preview:</h3>
                   <div>
-                    <span className="text-gray-600">ETHTronto participant</span>
-                    <span className="ml-2">TRUE</span>
+                    <p className="text-gray-600 text-xs mb-1 font-medium">ETHTronto participant</p>
+                    <p className="text-gray-600 text-xs">TRUE</p>
                   </div>
                 </div>
                 <label htmlFor="toAddress" className="block mb-1 text-sm">
@@ -145,7 +151,7 @@ const CredPaymaster: React.FC = () => {
                 />
                 {!isConnected && (
                   <button className="bg-green-500 text-white px-4 py-2 rounded mb-2" onClick={openConnectModal}>
-                    Submit Sponsorship
+                    Connect Wallet
                   </button>
                 )}
                 {isConnected && (
@@ -164,16 +170,21 @@ const CredPaymaster: React.FC = () => {
               <div className="user-mode">
                 <p className="mb-3 text-gray-600">Create a sponsored tx with an attestation.</p>
                 <div className="mb-4 bg-gray-50 p-4 rounded border">
+                  <h3 className="text-sm font-bold mb-2">Account Abstraction Wallet:</h3>
+                  <div>
+                    <p className="text-gray-600 text-xs mb-1 font-medium">Address</p>
+                    <p className="text-gray-600 text-xs mb-2">{address}</p>
+                    <p className="text-gray-600 text-xs mb-1 font-medium">Balance</p>
+                    <p className="text-gray-600 text-xs">{balance}</p>
+                  </div>
+                </div>
+                <div className="mb-4 bg-gray-50 p-4 rounded border">
                   <h3 className="text-sm font-bold mb-2">Transaction Preview:</h3>
                   <div>
-                    <p>
-                      <span className="text-gray-600">To: </span>
-                      <span className="ml-2 text-gray-600">0x</span>
-                    </p>
-                    <p>
-                      <span className="text-gray-600">Data: </span>
-                      <span className="ml-2 text-gray-600">0x</span>
-                    </p>
+                    <p className="text-gray-600 text-xs mb-1 font-medium">To</p>
+                    <p className="text-gray-600 text-xs mb-2">{ethers.constants.AddressZero}</p>
+                    <p className="text-gray-600 text-xs mb-1 font-medium">Data</p>
+                    <p className="text-gray-600 text-xs">0x</p>
                   </div>
                 </div>
                 <label htmlFor="attestationId" className="block mb-1 text-sm">
@@ -187,14 +198,26 @@ const CredPaymaster: React.FC = () => {
                 />
                 {!isConnected && (
                   <button className="bg-green-500 text-white px-4 py-2 rounded mb-2" onClick={openConnectModal}>
-                    Submit Sponsorship
+                    Connect Wallet
                   </button>
                 )}
                 {isConnected && (
                   <button
                     className="bg-blue-500 text-white px-4 py-2 rounded"
-                    onClick={() => {
-                      console.log("submit attestation");
+                    onClick={async () => {
+                      if (!accountAbstraction) return;
+                      if (!bundler) return;
+                      if (!ethersProvider) return;
+                      const unSignedUserOp = await accountAbstraction.createUnsignedUserOp({
+                        target: ethers.constants.AddressZero,
+                        data: "0x",
+                      });
+                      console.log("unSignedUserOp", unSignedUserOp);
+                      unSignedUserOp.preVerificationGas = 500000;
+                      const userOp = await accountAbstraction.signUserOp(unSignedUserOp);
+                      console.log("userOp", userOp);
+                      const result = await bundler.sendUserOpToBundler(userOp);
+                      console.log("result", result);
                     }}
                   >
                     Send Transaction
