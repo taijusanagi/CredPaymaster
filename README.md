@@ -26,6 +26,8 @@ By employing CredPaymaster, users can:
 
 ## How it works
 
+![how-it-works](./docs/how-it-works.png)
+
 1. **Infrastructure Deployment**: The entire account abstraction infrastructure of CredPaymaster is deployed on Base.
 2. **Utilizing Ethereum Attestation Service**: This service acts as the main credential registry. However, due to the absence of an Ethereum Attestation Service on Base, there arises a need to sync credentials.
 3. **Cross-Chain Messaging with Axelar**: To bridge the gap, CredPaymaster uses Axelar as the cross-chain messaging protocol. This ensures that credentials are seamlessly synced from the Ethereum Attestation Service to Base.
