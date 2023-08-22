@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Inter } from "next/font/google";
 
 import { useIsConnected } from "@/hooks/useIsConnected";
@@ -7,23 +7,40 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAccountAbstraction } from "@/hooks/useAccountAbstraction";
 import { ethers } from "ethers";
 import { useEthersProvider } from "@/hooks/useEthers";
-import { useCredPaymasterContract } from "@/hooks/useCredPaymasterContract";
+import { useContract } from "@/hooks/useContract";
 import { credPaymasterAddress } from "@/lib/credPaymaster";
+import { sampleEASSchemaId } from "@/lib/eas";
+// import { SchemaEncoder } from "@ethereum-attestation-service/eas-sdk";
+import { useAccount } from "wagmi";
 
 const inter = Inter({ subsets: ["latin"] });
 
 const CredPaymaster: React.FC = () => {
-  const { accountAbstraction, bundler, address, balance } = useAccountAbstraction();
-  const { credPaymasterContract, deposit } = useCredPaymasterContract();
+  const { address } = useAccount();
+  const { accountAbstraction, bundler, accountAbstractionAddress, balance } = useAccountAbstraction();
+  const { easContract, attestationSyncContract, credPaymasterContract, paymasterDeposit } = useContract();
   const ethersProvider = useEthersProvider();
 
   const [mode, setMode] = useState<"ATTESTATION" | "SYNC" | "SPONSOR" | "USER">("ATTESTATION");
   const { isConnected } = useIsConnected();
   const { openConnectModal } = useConnectModal();
 
+  const [toAddress, setToAddress] = useState("0x12c9C2168A0f5991F1eE7BF1d23904702E54A3D9");
+  const [attestaionId, setAttestationId] = useState(
+    "0xfbdaa8f9936d41a3c6791afa8b3acb74a808cd3f77cada5b3be27189b447f891"
+  );
+  const [schemaId, setSchemaId] = useState(sampleEASSchemaId);
+  const [issuerAddress, setIssuerAddress] = useState("");
+  const [amount, setAmount] = useState("0.01");
+
   const dummyAttestaionId = "0x0000000000000000000000000000000000000000000000000000000000000001";
   const dummySchemaId = "0x0000000000000000000000000000000000000000000000000000000000000002";
   const dummyAttester = "0x0000000000000000000000000000000000000001";
+
+  useEffect(() => {
+    if (!address) return;
+    setIssuerAddress(address);
+  }, [address]);
 
   return (
     <div className={`min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12 ${inter.className}`}>
@@ -77,37 +94,10 @@ const CredPaymaster: React.FC = () => {
                 <input
                   id="toAddress"
                   name="toAddress"
-                  className="border w-full p-2 rounded mb-6"
+                  className="border w-full p-2 rounded mb-6 text-xs"
                   placeholder="Enter destination address"
-                />
-                {!isConnected && (
-                  <button className="bg-green-500 text-white px-4 py-2 rounded mb-2" onClick={openConnectModal}>
-                    Connect Wallet
-                  </button>
-                )}
-                {isConnected && (
-                  <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded"
-                    onClick={() => {
-                      console.log("submit attestation");
-                    }}
-                  >
-                    Submit Attestation
-                  </button>
-                )}
-              </div>
-            )}
-            {mode === "SYNC" && (
-              <div className="attestation-mode">
-                <p className="mb-3 text-gray-600">Sync an attestation between Optimism and Base.</p>
-                <label htmlFor="attestationID" className="block mb-1 text-sm">
-                  Attestation ID:
-                </label>
-                <input
-                  id="attestationId"
-                  name="attestationId"
-                  className="border w-full p-2 rounded mb-6"
-                  placeholder="Enter attestation ID"
+                  value={toAddress}
+                  onChange={(e) => setToAddress(e.target.value)}
                 />
                 {!isConnected && (
                   <button className="bg-green-500 text-white px-4 py-2 rounded mb-2" onClick={openConnectModal}>
@@ -118,20 +108,81 @@ const CredPaymaster: React.FC = () => {
                   <button
                     className="bg-blue-500 text-white px-4 py-2 rounded"
                     onClick={async () => {
-                      if (!credPaymasterContract) return;
-                      const attestation = {
-                        uid: dummyAttestaionId,
-                        schema: dummySchemaId,
-                        time: 0,
-                        expirationTime: 0,
-                        revocationTime: 0,
-                        refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
-                        recipient: "0x0000000000000000000000000000000000000000",
-                        attester: dummyAttester,
-                        revocable: true,
-                        data: [],
-                      };
-                      const tx = await credPaymasterContract.syncAttestation(dummyAttestaionId, attestation);
+                      if (!easContract) return;
+                      // const schemaEncoder = new SchemaEncoder("bool ETHTrontoParticipant");
+                      // console.log("schemaEncoder", schemaEncoder);
+                      // const encodedData = schemaEncoder.encodeData([
+                      //   { name: "ETHTrontoParticipant", value: true, type: "bool" },
+                      // ]);
+
+                      // hardcoded since ethers 0.5.7 can not be used with EAS sdk
+                      const encodedData = "0x0000000000000000000000000000000000000000000000000000000000000001";
+                      console.log("encodedData", encodedData);
+                      const tx = await easContract.attest({
+                        schema: sampleEASSchemaId,
+                        data: {
+                          recipient: toAddress,
+                          expirationTime: 0 as any,
+                          revocable: true,
+                          refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                          data: encodedData,
+                          value: 0,
+                        },
+                      });
+                      console.log("tx", tx);
+                    }}
+                  >
+                    Submit Attestation
+                  </button>
+                )}
+              </div>
+            )}
+            {mode === "SYNC" && (
+              <div className="attestation-mode">
+                <p className="mb-3 text-gray-600">Sync an attestation from Optimism to Base.</p>
+                <label htmlFor="attestationID" className="block mb-1 text-sm">
+                  Attestation ID:
+                </label>
+                <input
+                  id="attestationId"
+                  name="attestationId"
+                  className="border w-full p-2 rounded mb-6 text-xs"
+                  placeholder="Enter attestation ID"
+                  value={attestaionId}
+                  onChange={(e) => setAttestationId(e.target.value)}
+                />
+                {!isConnected && (
+                  <button className="bg-green-500 text-white px-4 py-2 rounded mb-2" onClick={openConnectModal}>
+                    Connect Wallet
+                  </button>
+                )}
+                {isConnected && (
+                  <button
+                    className="bg-blue-500 text-white px-4 py-2 rounded"
+                    onClick={async () => {
+                      // if (!credPaymasterContract) return;
+                      // const attestation = {
+                      //   uid: dummyAttestaionId,
+                      //   schema: dummySchemaId,
+                      //   time: 0,
+                      //   expirationTime: 0,
+                      //   revocationTime: 0,
+                      //   refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                      //   recipient: "0x0000000000000000000000000000000000000000",
+                      //   attester: dummyAttester,
+                      //   revocable: true,
+                      //   data: [],
+                      // };
+                      // const tx = await credPaymasterContract.syncAttestation(dummyAttestaionId, attestation);
+                      if (!attestationSyncContract) return;
+                      const destinationChainId = "84531";
+                      const destinationAddress = credPaymasterAddress;
+                      const tx = await attestationSyncContract.syncAttestation(
+                        destinationChainId,
+                        destinationAddress,
+                        attestaionId,
+                        { value: ethers.utils.parseEther("0.001") }
+                      );
                       console.log("tx", tx);
                     }}
                   >
@@ -149,8 +200,10 @@ const CredPaymaster: React.FC = () => {
                 <input
                   id="schemaId"
                   name="schemaId"
-                  className="border w-full p-2 rounded mb-3"
+                  className="border w-full p-2 rounded mb-3 text-xs"
                   placeholder="Enter attestation ID"
+                  value={schemaId}
+                  onChange={(e) => setSchemaId(e.target.value)}
                 />
                 <label htmlFor="issuerAddress" className="block mb-1 text-sm">
                   Issuer Address:
@@ -158,17 +211,21 @@ const CredPaymaster: React.FC = () => {
                 <input
                   id="issuerAddress"
                   name="issuerAdderss"
-                  className="border w-full p-2 rounded mb-3"
+                  className="border w-full p-2 rounded mb-3 text-xs"
                   placeholder="Enter issuer address"
+                  value={issuerAddress}
+                  onChange={(e) => setIssuerAddress(e.target.value)}
                 />
                 <label htmlFor="amount" className="block mb-1 text-sm">
-                  Amount:
+                  Amount (ETH):
                 </label>
                 <input
                   id="amount"
                   name="amount"
-                  className="border w-full p-2 rounded mb-6"
+                  className="border w-full p-2 rounded mb-6 text-xs"
                   placeholder="Enter amount"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
                 />
                 {!isConnected && (
                   <button className="bg-green-500 text-white px-4 py-2 rounded mb-2" onClick={openConnectModal}>
@@ -180,10 +237,9 @@ const CredPaymaster: React.FC = () => {
                     className="bg-blue-500 text-white px-4 py-2 rounded"
                     onClick={async () => {
                       if (!credPaymasterContract) return;
-
                       // await credPaymasterContract.addStake(1, { value: 1 });
-                      const tx = await credPaymasterContract.sponsorAddFund(dummySchemaId, dummyAttester, {
-                        value: ethers.utils.parseEther("0.01"),
+                      const tx = await credPaymasterContract.sponsorAddFund(schemaId, issuerAddress, {
+                        value: ethers.utils.parseEther(amount),
                       });
                       console.log("tx", tx);
                     }}
@@ -200,7 +256,7 @@ const CredPaymaster: React.FC = () => {
                   <h3 className="text-sm font-bold mb-2">Account Abstraction Wallet:</h3>
                   <div>
                     <p className="text-gray-600 text-xs mb-1 font-medium">Address</p>
-                    <p className="text-gray-600 text-xs mb-2">{address}</p>
+                    <p className="text-gray-600 text-xs mb-2">{accountAbstractionAddress}</p>
                     <p className="text-gray-600 text-xs mb-1 font-medium">Balance</p>
                     <p className="text-gray-600 text-xs">{balance}</p>
                   </div>
@@ -211,7 +267,7 @@ const CredPaymaster: React.FC = () => {
                     <p className="text-gray-600 text-xs mb-1 font-medium">Address</p>
                     <p className="text-gray-600 text-xs mb-2">{credPaymasterContract?.address}</p>
                     <p className="text-gray-600 text-xs mb-1 font-medium">Balance</p>
-                    <p className="text-gray-600 text-xs">{deposit}</p>
+                    <p className="text-gray-600 text-xs">{paymasterDeposit}</p>
                   </div>
                 </div>
                 <div className="mb-4 bg-gray-50 p-4 rounded border">
@@ -231,6 +287,8 @@ const CredPaymaster: React.FC = () => {
                   name="attestationId"
                   className="border w-full p-2 rounded mb-3"
                   placeholder="Enter attestation ID"
+                  value={attestaionId}
+                  onChange={(e) => setAttestationId(e.target.value)}
                 />
                 {!isConnected && (
                   <button className="bg-green-500 text-white px-4 py-2 rounded mb-2" onClick={openConnectModal}>

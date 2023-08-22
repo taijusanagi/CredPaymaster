@@ -14,12 +14,13 @@ export const useAccountAbstraction = () => {
   const { chain } = useNetwork();
   const [accountAbstraction, setAccountAbstraction] = useState<SimpleAccountAPI>();
   const [bundler, setBundler] = useState<HttpRpcClient>();
-  const [address, setAddress] = useState("");
+  const [accountAbstractionAddress, setAccountAbstractionAddress] = useState("");
   const [balance, setBalance] = useState("0");
   useEffect(() => {
     if (!ethersProvider) return;
     if (!ethersSigner) return;
     if (!chain) return;
+    if (chain.id !== 84531) return;
     const walletAPI = new SimpleAccountAPI({
       provider: ethersProvider,
       entryPointAddress,
@@ -30,12 +31,12 @@ export const useAccountAbstraction = () => {
     setAccountAbstraction(walletAPI);
     setBundler(httpRPCClient);
     walletAPI.getAccountAddress().then((address) => {
-      setAddress(address);
+      setAccountAbstractionAddress(address);
       ethersProvider.getBalance(address).then((balance) => {
         setBalance(ethers.utils.formatEther(balance));
       });
     });
   }, [ethersProvider, ethersSigner, chain]);
 
-  return { accountAbstraction, bundler, address, balance };
+  return { accountAbstraction, bundler, accountAbstractionAddress, balance };
 };
