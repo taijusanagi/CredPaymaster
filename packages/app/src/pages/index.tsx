@@ -7,16 +7,23 @@ import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { useAccountAbstraction } from "@/hooks/useAccountAbstraction";
 import { ethers } from "ethers";
 import { useEthersProvider } from "@/hooks/useEthers";
+import { useCredPaymasterContract } from "@/hooks/useCredPaymasterContract";
+import { credPaymasterAddress } from "@/lib/credPaymaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
 const CredPaymaster: React.FC = () => {
   const { accountAbstraction, bundler, address, balance } = useAccountAbstraction();
+  const { credPaymasterContract, deposit } = useCredPaymasterContract();
   const ethersProvider = useEthersProvider();
 
   const [mode, setMode] = useState<"ATTESTATION" | "SYNC" | "SPONSOR" | "USER">("ATTESTATION");
   const { isConnected } = useIsConnected();
   const { openConnectModal } = useConnectModal();
+
+  const dummyAttestaionId = "0x0000000000000000000000000000000000000000000000000000000000000001";
+  const dummySchemaId = "0x0000000000000000000000000000000000000000000000000000000000000002";
+  const dummyAttester = "0x0000000000000000000000000000000000000001";
 
   return (
     <div className={`min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12 ${inter.className}`}>
@@ -110,8 +117,22 @@ const CredPaymaster: React.FC = () => {
                 {isConnected && (
                   <button
                     className="bg-blue-500 text-white px-4 py-2 rounded"
-                    onClick={() => {
-                      console.log("submit attestation");
+                    onClick={async () => {
+                      if (!credPaymasterContract) return;
+                      const attestation = {
+                        uid: dummyAttestaionId,
+                        schema: dummySchemaId,
+                        time: 0,
+                        expirationTime: 0,
+                        revocationTime: 0,
+                        refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
+                        recipient: "0x0000000000000000000000000000000000000000",
+                        attester: dummyAttester,
+                        revocable: true,
+                        data: [],
+                      };
+                      const tx = await credPaymasterContract.syncAttestation(dummyAttestaionId, attestation);
+                      console.log("tx", tx);
                     }}
                   >
                     Sync Attestation
@@ -157,8 +178,14 @@ const CredPaymaster: React.FC = () => {
                 {isConnected && (
                   <button
                     className="bg-blue-500 text-white px-4 py-2 rounded"
-                    onClick={() => {
-                      console.log("submit attestation");
+                    onClick={async () => {
+                      if (!credPaymasterContract) return;
+
+                      // await credPaymasterContract.addStake(1, { value: 1 });
+                      const tx = await credPaymasterContract.sponsorAddFund(dummySchemaId, dummyAttester, {
+                        value: ethers.utils.parseEther("0.01"),
+                      });
+                      console.log("tx", tx);
                     }}
                   >
                     Submit Sponsorship
@@ -176,6 +203,15 @@ const CredPaymaster: React.FC = () => {
                     <p className="text-gray-600 text-xs mb-2">{address}</p>
                     <p className="text-gray-600 text-xs mb-1 font-medium">Balance</p>
                     <p className="text-gray-600 text-xs">{balance}</p>
+                  </div>
+                </div>
+                <div className="mb-4 bg-gray-50 p-4 rounded border">
+                  <h3 className="text-sm font-bold mb-2">Cred Paymster:</h3>
+                  <div>
+                    <p className="text-gray-600 text-xs mb-1 font-medium">Address</p>
+                    <p className="text-gray-600 text-xs mb-2">{credPaymasterContract?.address}</p>
+                    <p className="text-gray-600 text-xs mb-1 font-medium">Balance</p>
+                    <p className="text-gray-600 text-xs">{deposit}</p>
                   </div>
                 </div>
                 <div className="mb-4 bg-gray-50 p-4 rounded border">
@@ -212,8 +248,9 @@ const CredPaymaster: React.FC = () => {
                         target: ethers.constants.AddressZero,
                         data: "0x",
                       });
-                      console.log("unSignedUserOp", unSignedUserOp);
                       unSignedUserOp.preVerificationGas = 500000;
+                      unSignedUserOp.paymasterAndData = credPaymasterAddress + dummyAttestaionId.slice(2);
+                      console.log("unSignedUserOp", unSignedUserOp);
                       const userOp = await accountAbstraction.signUserOp(unSignedUserOp);
                       console.log("userOp", userOp);
                       const result = await bundler.sendUserOpToBundler(userOp);

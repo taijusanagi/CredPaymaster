@@ -33,6 +33,8 @@ contract CredPaymaster is BasePaymaster {
         );
         Attestation memory attestation = attestaitons[attestationId];
         uint256 deposit = deposits[attestation.schema][attestation.attester];
+        //TODO: add validation to check the receipient is the same account address
+        
         require(deposit >= maxCost, "Insufficient deposit");
         return (abi.encode(attestation.schema, attestation.attester), 0);
     }
