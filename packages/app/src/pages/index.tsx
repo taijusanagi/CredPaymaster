@@ -31,7 +31,7 @@ const CredPaymaster: React.FC = () => {
   const { openConnectModal } = useConnectModal();
 
   const [toAddress, setToAddress] = useState("0x12c9C2168A0f5991F1eE7BF1d23904702E54A3D9");
-  const [attestaionId, setAttestationId] = useState(
+  const [attestationId, setAttestationId] = useState(
     "0xfbdaa8f9936d41a3c6791afa8b3acb74a808cd3f77cada5b3be27189b447f891"
   );
   const [schemaId, setSchemaId] = useState(sampleEASSchemaId);
@@ -46,7 +46,7 @@ const CredPaymaster: React.FC = () => {
   const [isAccountAbstractionModalOpen, setIsAccountAbstractionModalOpen] = useState(false);
   const [requestId, setRequestId] = useState("");
 
-  const dummyAttestaionId = "0x0000000000000000000000000000000000000000000000000000000000000001";
+  const dummyattestationId = "0x0000000000000000000000000000000000000000000000000000000000000001";
   const dummySchemaId = "0x0000000000000000000000000000000000000000000000000000000000000002";
   const dummyAttester = "0x0000000000000000000000000000000000000001";
 
@@ -192,10 +192,10 @@ const CredPaymaster: React.FC = () => {
                           <p className="text-gray-600 text-xs">
                             <a
                               className="text-blue-500"
-                              href={`https://optimism-goerli-bedrock.easscan.org/attestation/view/${attestaionId}`}
+                              href={`https://optimism-goerli-bedrock.easscan.org/attestation/view/${attestationId}`}
                               target="_blank"
                             >
-                              {attestaionId}
+                              {attestationId}
                             </a>
                           </p>
                         </div>
@@ -216,7 +216,7 @@ const CredPaymaster: React.FC = () => {
                   name="attestationId"
                   className="border w-full p-2 rounded mb-6 text-xs"
                   placeholder="Enter attestation ID"
-                  value={attestaionId}
+                  value={attestationId}
                   onChange={(e) => setAttestationId(e.target.value)}
                 />
                 {!isConnected && (
@@ -232,18 +232,21 @@ const CredPaymaster: React.FC = () => {
                         // debug mode
                         // if (!credPaymasterContract) return;
                         // const attestation = {
-                        //   uid: dummyAttestaionId,
-                        //   schema: dummySchemaId,
+                        //   uid: attestationId,
+                        //   schema: schemaId,
                         //   time: 0,
                         //   expirationTime: 0,
                         //   revocationTime: 0,
                         //   refUID: "0x0000000000000000000000000000000000000000000000000000000000000000",
-                        //   recipient: "0x0000000000000000000000000000000000000000",
-                        //   attester: dummyAttester,
+                        //   recipient: accountAbstractionAddress,
+                        //   attester: address,
                         //   revocable: true,
                         //   data: [],
                         // };
-                        // const tx = await credPaymasterContract.syncAttestation(dummyAttestaionId, attestation);
+                        // console.log("attestation", attestation);
+                        // const tx = await credPaymasterContract.debugAddAttestation(attestationId, attestation);
+                        // console.log("tx", tx);
+                        // return;
                         if (!attestationSyncContract) {
                           showToast({
                             message: "Please make sure your wallet is connected to Optimism Goerli",
@@ -257,7 +260,7 @@ const CredPaymaster: React.FC = () => {
                           const tx = await attestationSyncContract.syncAttestation(
                             destinationChainId,
                             destinationAddress,
-                            attestaionId,
+                            attestationId,
                             { value: ethers.utils.parseEther("0.001") }
                           );
                           console.log("tx", tx);
@@ -353,7 +356,7 @@ const CredPaymaster: React.FC = () => {
                           return;
                         }
                         try {
-                          // await credPaymasterContract.addStake(1, { value: 1 });
+                          await credPaymasterContract.addStake(1, { value: 1 });
                           const tx = await credPaymasterContract.sponsorAddFund(schemaId, issuerAddress, {
                             value: ethers.utils.parseEther(amount),
                           });
@@ -434,7 +437,7 @@ const CredPaymaster: React.FC = () => {
                   name="attestationId"
                   className="border w-full p-2 rounded mb-3 text-xs"
                   placeholder="Enter attestation ID"
-                  value={attestaionId}
+                  value={attestationId}
                   onChange={(e) => setAttestationId(e.target.value)}
                 />
                 {!isConnected && (
@@ -460,7 +463,7 @@ const CredPaymaster: React.FC = () => {
                             data: "0x",
                           });
                           unSignedUserOp.preVerificationGas = 500000;
-                          // unSignedUserOp.paymasterAndData = credPaymasterAddress + dummyAttestaionId.slice(2);
+                          unSignedUserOp.paymasterAndData = credPaymasterAddress + attestationId.slice(2);
                           console.log("unSignedUserOp", unSignedUserOp);
                           const userOp = await accountAbstraction.signUserOp(unSignedUserOp);
                           console.log("userOp", userOp);

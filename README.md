@@ -6,11 +6,11 @@
 
 ## Benefit
 
-By employing CredPaymaster, chains can:
+By employing CredPaymaster, users can:
 
-- Attract more users to their ecosystem with a simplified and innovative system.
 - Provide a seamless way for sponsors to create sponsorships based on certain credentials.
 - Enable users with the required credentials to benefit from free transactions under these sponsorships.
+- Attract more users to their ecosystem with a flexible paymaster system.
 
 ## How it works
 
@@ -22,10 +22,18 @@ By employing CredPaymaster, chains can:
 
 ## Reference
 
-### Sample EAS schema
+### Created EAS schema
 
 https://optimism-goerli-bedrock.easscan.org/schema/view/0x609d299dc1b4745bee41ff5d4545221b459f868e52394452be275b8471fedcf8
 
-### Attestation Sync with Axelar
+### Created EAS Attestation
 
-https://testnet.axelarscan.io/gmp/0x15b928d2b84107a75c307cb399f78ae9e8de8e30b0fede8c9f3f027dd147f9f9
+https://optimism-goerli-bedrock.easscan.org/attestation/view/0xfbdaa8f9936d41a3c6791afa8b3acb74a808cd3f77cada5b3be27189b447f891
+
+### Attestation Sync Tx with Axelar
+
+https://testnet.axelarscan.io/gmp/0x73e1beb8f59940dc1eb7d5f536f6d9757ce0b475f99a27030ab70a190e7bb039
+
+### Success Account Abstraction Tx
+
+https://www.jiffyscan.xyz/userOpHash/0x509edcd975ea252b529f32001d600330a625eab50e761f4b647b4f6b210f62bf?network=base-testnet
