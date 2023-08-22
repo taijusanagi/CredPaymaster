@@ -1,4 +1,4 @@
-export const credPaymasterAddress = "0x0E2487584BE1c002654ccFfE17d6391a88C1e72A";
+export const credPaymasterAddress = "0xdA4176a1668cfE99DD7336d909925F2f5037e924";
 export const credPaymasterAbi = [
   {
     inputs: [
@@ -7,9 +7,34 @@ export const credPaymasterAbi = [
         name: "_entryPoint",
         type: "address",
       },
+      {
+        internalType: "address",
+        name: "gateway_",
+        type: "address",
+      },
+      {
+        internalType: "string",
+        name: "trustedSourceChain_",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "trustedSourceAddress_",
+        type: "string",
+      },
     ],
     stateMutability: "nonpayable",
     type: "constructor",
+  },
+  {
+    inputs: [],
+    name: "InvalidAddress",
+    type: "error",
+  },
+  {
+    inputs: [],
+    name: "NotApprovedByGateway",
+    type: "error",
   },
   {
     anonymous: false,
@@ -108,6 +133,76 @@ export const credPaymasterAbi = [
     type: "function",
   },
   {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "attestationId",
+        type: "bytes32",
+      },
+      {
+        components: [
+          {
+            internalType: "bytes32",
+            name: "uid",
+            type: "bytes32",
+          },
+          {
+            internalType: "bytes32",
+            name: "schema",
+            type: "bytes32",
+          },
+          {
+            internalType: "uint64",
+            name: "time",
+            type: "uint64",
+          },
+          {
+            internalType: "uint64",
+            name: "expirationTime",
+            type: "uint64",
+          },
+          {
+            internalType: "uint64",
+            name: "revocationTime",
+            type: "uint64",
+          },
+          {
+            internalType: "bytes32",
+            name: "refUID",
+            type: "bytes32",
+          },
+          {
+            internalType: "address",
+            name: "recipient",
+            type: "address",
+          },
+          {
+            internalType: "address",
+            name: "attester",
+            type: "address",
+          },
+          {
+            internalType: "bool",
+            name: "revocable",
+            type: "bool",
+          },
+          {
+            internalType: "bytes",
+            name: "data",
+            type: "bytes",
+          },
+        ],
+        internalType: "struct Attestation",
+        name: "attestation",
+        type: "tuple",
+      },
+    ],
+    name: "debugAddAttestation",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
     inputs: [],
     name: "deposit",
     outputs: [],
@@ -144,6 +239,85 @@ export const credPaymasterAbi = [
     outputs: [
       {
         internalType: "contract IEntryPoint",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "commandId",
+        type: "bytes32",
+      },
+      {
+        internalType: "string",
+        name: "sourceChain",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "sourceAddress",
+        type: "string",
+      },
+      {
+        internalType: "bytes",
+        name: "payload",
+        type: "bytes",
+      },
+    ],
+    name: "execute",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes32",
+        name: "commandId",
+        type: "bytes32",
+      },
+      {
+        internalType: "string",
+        name: "sourceChain",
+        type: "string",
+      },
+      {
+        internalType: "string",
+        name: "sourceAddress",
+        type: "string",
+      },
+      {
+        internalType: "bytes",
+        name: "payload",
+        type: "bytes",
+      },
+      {
+        internalType: "string",
+        name: "tokenSymbol",
+        type: "string",
+      },
+      {
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "executeWithToken",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "gateway",
+    outputs: [
+      {
+        internalType: "contract IAxelarGateway",
         name: "",
         type: "address",
       },
@@ -228,76 +402,6 @@ export const credPaymasterAbi = [
   {
     inputs: [
       {
-        internalType: "bytes32",
-        name: "attestationId",
-        type: "bytes32",
-      },
-      {
-        components: [
-          {
-            internalType: "bytes32",
-            name: "uid",
-            type: "bytes32",
-          },
-          {
-            internalType: "bytes32",
-            name: "schema",
-            type: "bytes32",
-          },
-          {
-            internalType: "uint64",
-            name: "time",
-            type: "uint64",
-          },
-          {
-            internalType: "uint64",
-            name: "expirationTime",
-            type: "uint64",
-          },
-          {
-            internalType: "uint64",
-            name: "revocationTime",
-            type: "uint64",
-          },
-          {
-            internalType: "bytes32",
-            name: "refUID",
-            type: "bytes32",
-          },
-          {
-            internalType: "address",
-            name: "recipient",
-            type: "address",
-          },
-          {
-            internalType: "address",
-            name: "attester",
-            type: "address",
-          },
-          {
-            internalType: "bool",
-            name: "revocable",
-            type: "bool",
-          },
-          {
-            internalType: "bytes",
-            name: "data",
-            type: "bytes",
-          },
-        ],
-        internalType: "struct Attestation",
-        name: "attestation",
-        type: "tuple",
-      },
-    ],
-    name: "syncAttestation",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
         internalType: "address",
         name: "newOwner",
         type: "address",
@@ -306,6 +410,32 @@ export const credPaymasterAbi = [
     name: "transferOwnership",
     outputs: [],
     stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "trustedSourceAddress",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "trustedSourceChain",
+    outputs: [
+      {
+        internalType: "string",
+        name: "",
+        type: "string",
+      },
+    ],
+    stateMutability: "view",
     type: "function",
   },
   {

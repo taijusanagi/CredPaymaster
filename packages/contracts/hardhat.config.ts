@@ -8,6 +8,10 @@ const config: HardhatUserConfig = {
       url: "https://goerli.base.org",
       accounts: [process.env.PRIVATE_KEY as string],
     },
+    optimism: {
+      url: "https://goerli.optimism.io",
+      accounts: [process.env.PRIVATE_KEY as string],
+    },
   },
 };
 
